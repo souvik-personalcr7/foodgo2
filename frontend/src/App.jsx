@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import SingUP from './pages/SingUP'
 import SingIn from './pages/SingIn'
 import ForgotPassword from './pages/ForgotPassword'
@@ -12,6 +12,7 @@ import Home from './pages/Home'
 import Nav from './components/Nav'
 import useGetCity from './Hooks/UseGetCity'
 import useGetMyShop from './Hooks/useGetMyShop'
+import AddItems from './pages/additems'
 
 
 export const serverUrl = "http://localhost:8000"
@@ -20,7 +21,10 @@ function App() {
   useGetCurrentUser()
   useGetCity()
   useGetMyShop()
+  const location = useLocation()
   const { userData, isAuthResolved } = useSelector(state => state.user)
+  const hideNavRoutes = ['/singup', '/singin', '/forgotpassword']
+  const showNav = !hideNavRoutes.includes(location.pathname)
   
   if (!isAuthResolved) {
     return <div className="flex justify-center items-center min-h-screen text-amber-700 font-bold text-2xl">Loading...</div>
@@ -28,7 +32,7 @@ function App() {
 
   return (
     <>
-      {userData && <Nav />}
+      {showNav && <Nav />}
       <Routes>
         <Route path='/singup' element={!userData ? <SingUP /> : <Navigate to={"/"} />} />
         <Route path='/singin' element={!userData ? <SingIn /> : <Navigate to={"/"} />} />
@@ -36,6 +40,7 @@ function App() {
         <Route path='/' element={userData ? <Home /> : <Navigate to={"/singin"} />} />
         <Route path='/create-edit-shop' element={userData ? <CreateEditShop /> : <Navigate to={"/singin"} />} />
         <Route path='/owner/dashboard' element={userData?.role === 'owner' ? <OwnerdDashbord /> : <Navigate to={"/"} />} />
+        <Route path='/add-items' element={userData?.role === 'owner' ? <AddItems /> : <Navigate to={"/singin"} />} />
       </Routes>
     </>
   )

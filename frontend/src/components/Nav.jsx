@@ -36,7 +36,7 @@ function Nav() {
         <div className='flex items-center justify-between bg-white shadow-md px-6 py-4'>
 
 
-            {showSearch && userData.role == "user" && !hideSearch && (
+            {showSearch && userData?.role == "user" && !hideSearch && (
                 <div className='w-[80%] bg-white shadow-xl rounded-lg items-center gap-[20px] h-[70px] flex fixed top-[70px] left-[5%] z-[9999] md:hidden'>
                     <div className="flex items-center w-full border-gray-400 px-[10px] gap-[10px]">
                         <div className="flex items-center w-[30%] gap-[10px] overflow-hidden ">
@@ -62,7 +62,7 @@ function Nav() {
 
             <h1 className='text-3xl font-bold mb-2 text-amber-700'>FoodGo</h1>
 
-            {userData.role == "user" &&
+            {userData?.role == "user" &&
                 (<div className="flex items-center w-[30%] gap-[10px] overflow-hidden ">
                     <FaLocationDot className="w-[20px] h-[25px] text-amber-700" />
                     <span className="truncate text-gray-600">{currentCity}</span>
@@ -94,7 +94,7 @@ function Nav() {
                     onClick={() => setShowSearch(true)}
                 />)}
 
-                {userData.role === "owner" && !hideSearch &&
+                {userData?.role === "owner" && !hideSearch &&
                     <>
                         {myShopData &&
                             
