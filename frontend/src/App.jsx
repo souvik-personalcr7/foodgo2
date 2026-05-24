@@ -24,7 +24,8 @@ function App() {
   const location = useLocation()
   const { userData, isAuthResolved } = useSelector(state => state.user)
   const hideNavRoutes = ['/singup', '/singin', '/forgotpassword']
-  const showNav = !hideNavRoutes.includes(location.pathname)
+  const currentPath = location.pathname.toLowerCase().replace(/\/$/, '')
+  const showNav = !hideNavRoutes.includes(currentPath)
   
   if (!isAuthResolved) {
     return <div className="flex justify-center items-center min-h-screen text-amber-700 font-bold text-2xl">Loading...</div>
@@ -40,7 +41,10 @@ function App() {
         <Route path='/' element={userData ? <Home /> : <Navigate to={"/singin"} />} />
         <Route path='/create-edit-shop' element={userData ? <CreateEditShop /> : <Navigate to={"/singin"} />} />
         <Route path='/owner/dashboard' element={userData?.role === 'owner' ? <OwnerdDashbord /> : <Navigate to={"/"} />} />
+        <Route path='/Ownerdashboard' element={<Navigate to={'/owner/dashboard'} replace />} />
         <Route path='/add-items' element={userData?.role === 'owner' ? <AddItems /> : <Navigate to={"/singin"} />} />
+        <Route path='/additems' element={<Navigate to={'/add-items'} replace />} />
+        <Route path='/Deliverydashboard' element={<Navigate to={'/'} replace />} />
       </Routes>
     </>
   )

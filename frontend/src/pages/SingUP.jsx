@@ -48,11 +48,11 @@ const SingUp = () => {
 
             dispatch(setUserData(result.data.user));
             if (role === "owner") {
-                navigate("/Ownerdashboard");
+                navigate("/owner/dashboard");
             } else if (role === "user") {
                 navigate("/");
             } else if (role === "delivery boy") {
-                navigate("/Deliverydashboard");
+                navigate("/");
             }
 
 

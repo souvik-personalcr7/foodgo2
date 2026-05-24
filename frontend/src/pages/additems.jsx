@@ -1,26 +1,80 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { FaUtensils } from "react-icons/fa";
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
- 
+import { serverUrl } from '../App';
+import axios from 'axios';
+
 function AddItems() {
     const Navigate = useNavigate()
     const { myShopData } = useSelector(state => state.owner)
     const [foodName, setFoodName] = useState("")
+    const [price, setPrice] = useState(0)
     const [frontendImage, setFrontendImage] = useState(null)
     const [backendImage, setBackendImage] = useState(null)
+    const [category, setCategory] = useState("")
+    const [foodType, setFoodType] = useState("veg")
+    const [submitError, setSubmitError] = useState("")
+    const categoryOptions = [
+        "Snacks",
+        "Main Course",
+        "Desserts",
+        "Pizza",
+        "Burgers",
+        "Sandwiches",
+        "South Indian",
+        "North Indian",
+        "Chinese",
+        "Fast Food",
+        "Others"
+    ]
+
+    useEffect(() => {
+        window.scrollTo(0, 0)
+    }, [])
 
     const handleImage = (e) => {
         const file = e.target.files[0]
         if (file) {
             setFrontendImage(URL.createObjectURL(file))
+            setBackendImage(file)
         }
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        console.log("Food Item:", foodName)
+        setSubmitError("")
+        if (!myShopData?._id) {
+            setSubmitError("Please create your shop first before adding food items.")
+            return
+        }
+        if (!foodName.trim() || !category || !price || !backendImage) {
+            setSubmitError("Please fill all fields and upload an image.")
+            return
+        }
+        try {
+            const formData = new FormData()
+            formData.append("name", foodName)
+            formData.append("category", category)
+            formData.append("foodType", foodType)
+            formData.append("price", price)
+            if (backendImage) {
+                formData.append("image", backendImage)
+            }
+            const result = await axios.post(`${serverUrl}/api/item/add-item`, formData, {
+                withCredentials: true
+            })
+            console.log(result.data)
+            setFoodName("")
+            setPrice(0)
+            setCategory("")
+            setFoodType("veg")
+            setFrontendImage(null)
+            setBackendImage(null)
+        } catch (error) {
+            setSubmitError(error?.response?.data?.message || "Unable to add item. Please try again.")
+        }
     }
 
     return (
@@ -71,8 +125,47 @@ function AddItems() {
 
                     </div>
 
+                    <div>
+                        <label className='block text-sm font-medium text-amber-100 mb-1 sm:mb-2'>Food Name</label>
+                        <input type="number" placeholder='Enter Price'
+                            className='w-full px-4 py-2 bg-white text-gray-800 border border-transparent rounded-lg focus:outline-none focus:ring-2 
+                            focus:ring-amber-200 transition-shadow' onChange={(e) => setPrice(e.target.value)} value={price} />
+                    </div>
 
 
+                    <div>
+                        <label className='block text-sm font-medium text-amber-100 mb-1 sm:mb-2'>Select Ctagories</label>
+                        <select
+                            className='w-full px-4 py-2 bg-white text-gray-800 border border-transparent rounded-lg focus:outline-none focus:ring-2 
+                            focus:ring-amber-200 transition-shadow' onChange={(e) => setCategory(e.target.value)} value={category}>
+
+                            <option value="">
+                                Select Categories
+                            </option>
+                            {categoryOptions.map((cate, index) => (
+                                <option value={cate} key={index}>{cate}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className='block text-sm font-medium text-amber-100 mb-1 sm:mb-2'>Select Food Type</label>
+                        <select
+                            className='w-full px-4 py-2 bg-white text-gray-800 border border-transparent rounded-lg focus:outline-none focus:ring-2 
+                            focus:ring-amber-200 transition-shadow' onChange={(e) => setFoodType(e.target.value)} value={foodType}>
+
+                            <option value="veg">
+                                Veg
+                            </option>
+                            <option value="non-veg"> Non Veg</option>
+                        </select>
+                    </div>
+
+
+
+                    {submitError && (
+                        <p className='text-red-100 text-sm font-medium'>{submitError}</p>
+                    )}
 
                     <button type='submit' className='w-full bg-amber-50 text-amber-900 mt-4 sm:mt-6 px-6 py-3 rounded-lg font-bold text-lg
                           shadow-md hover:bg-amber-100 hover:shadow-lg transition-all duration-200 cursor-pointer'>
