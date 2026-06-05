@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { FaUtensils } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { FaPen } from "react-icons/fa";
+import OwnerItemCard from './ownerItemCard';
 
 function OwnerdDashbord() {
   const { myShopData } = useSelector(state => state.owner)
@@ -33,9 +34,9 @@ function OwnerdDashbord() {
 
       {myShopData &&
         <div className='w-full flex flex-col items-center gap-6 px-4 sm:px-6'>
-          <h1 className='flex items-center gap-2 whitespace-nowrap text-3xl font-bold text-amber-700'>
+          <h1 className='flex max-w-full flex-wrap items-center justify-center gap-2 text-center text-2xl font-bold text-amber-700 sm:text-3xl'>
             <FaUtensils className='text-amber-700 w-8 h-8 shrink-0' />
-            Welcome to {myShopData.name}
+            <span className='break-words'>Welcome to {myShopData.name}</span>
           </h1>
 
           {myShopData.image &&
@@ -59,18 +60,22 @@ function OwnerdDashbord() {
               <span className='text-gray-700'>{myShopData.state}</span>
             </div>
           </div>
+          {(myShopData.item || []).length > 0 && <div className='flex flex-col items-center gap-4 w-full max-w-3xl'>
+            {(myShopData.item || []).map((item, index) => (
+              <OwnerItemCard data={item} key={index} />
+            ))}
+          </div>}
 
-     
 
           <button className='inline-flex items-center gap-2 whitespace-nowrap bg-amber-700 text-white px-8 py-3 rounded-full font-bold hover:bg-amber-900 transition-colors duration-200 shadow-md cursor-pointer mt-2'
             onClick={() => Navigate("/create-edit-shop")}>
-              <FaPen className='w-4 h-4 shrink-0' 
-              onClick={()=> Navigate("/create-edit-shop")}
-              />
+            <FaPen className='w-4 h-4 shrink-0'
+              onClick={() => Navigate("/create-edit-shop")}
+            />
             Edit Shop
           </button>
 
-               <div className='w-full max-w-md bg-amber-50 rounded-2xl p-6 border border-amber-100 shadow-sm'>
+          <div className='w-full max-w-md bg-amber-50 rounded-2xl p-6 border border-amber-100 shadow-sm'>
             <div className='flex flex-col items-center text-center'>
               <FaUtensils className='text-amber-700 w-12 h-12 mb-3' />
               <h2 className='text-xl font-bold text-amber-900 mb-2'>Add Tour Food Items</h2>

@@ -13,6 +13,7 @@ import Nav from './components/Nav'
 import useGetCity from './Hooks/UseGetCity'
 import useGetMyShop from './Hooks/useGetMyShop'
 import AddItems from './pages/additems'
+import EditItems from './pages/EditItems'
 
 
 export const serverUrl = "http://localhost:8000"
@@ -43,8 +44,10 @@ function App() {
         <Route path='/owner/dashboard' element={userData?.role === 'owner' ? <OwnerdDashbord /> : <Navigate to={"/"} />} />
         <Route path='/Ownerdashboard' element={<Navigate to={'/owner/dashboard'} replace />} />
         <Route path='/add-items' element={userData?.role === 'owner' ? <AddItems /> : <Navigate to={"/singin"} />} />
+        <Route path='/add-items/:itemId' element={userData?.role === 'owner' ? <AddItems /> : <Navigate to={"/singin"} />} />
         <Route path='/additems' element={<Navigate to={'/add-items'} replace />} />
         <Route path='/Deliverydashboard' element={<Navigate to={'/'} replace />} />
+        <Route path='/edit-item' element={userData?.role === 'owner' ? <EditItems /> : <Navigate to={"/add-items"} />} />
       </Routes>
     </>
   )

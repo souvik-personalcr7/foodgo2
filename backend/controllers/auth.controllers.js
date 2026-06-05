@@ -6,16 +6,20 @@ import { sendOtpMail } from "../utils/mail.js"
 export const singUp = async (req, res) => {
     try {
         const { fullName, email, password, mobile, role } = req.body
+        
+        if (!fullName || !email || !password || !mobile || !role) {
+            return res.status(400).json({ message: "All fields are required" })
+        }
+
         let user = await User.findOne({ email })
         if (user) {
-            return res.status(400).json({ massage: "user already exist" })
+            return res.status(400).json({ message: "User already exists" })
         }
         if (password.length < 6) {
-            return res.status(400).json({ massage: "password must be 6 characters" })
-
+            return res.status(400).json({ message: "Password must be at least 6 characters" })
         }
         if (mobile.length < 10) {
-            return res.status(400).json({ massage: "number length must be 10 digits" })
+            return res.status(400).json({ message: "Mobile number must be at least 10 digits" })
         }
 
         const hashedPassword = await bcrypt.hash(password, 6)
@@ -37,7 +41,7 @@ export const singUp = async (req, res) => {
     }
 
     catch (error) {
-        return res.status(500).json(`sing up error ${error}`)
+        return res.status(500).json({ message: `Sign up error: ${error.message}` })
     }
 }
 
@@ -50,30 +54,19 @@ export const singUp = async (req, res) => {
 export const singIn = async (req, res) => {
     try {
         const { email, password } = req.body
+        
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" })
+        }
+
         const user = await User.findOne({ email })
         if (!user) {
-            return res.status(400).json({ massage: "use not exist" })
+            return res.status(400).json({ message: "User does not exist" })
         }
-        // if (password.length < 6) {
-        //     return res.status(400).json({ massage: "password must be 6 characters" })
-
-        // }
-        // if (mobile.length < 10) {
-        //     return res.status(400).json({ massage: "number length must be 10 digits" })
-        // }
-
-        // const hashedPassword = await berypt.hash(password, 6)
-        // user = await User.create({
-        //     fullName,
-        //     email,
-        //     mobile,
-        //     role,
-        //     password: hashedPassword
-        // })
 
         const ismatch = await bcrypt.compare(password, user.password)
         if (!ismatch) {
-            return res.status(400).json({ massage: "password incorrect " })
+            return res.status(400).json({ message: "Password is incorrect" })
         }
 
         const token = await genToken(user._id)
@@ -89,7 +82,7 @@ export const singIn = async (req, res) => {
     }
 
     catch (error) {
-        return res.status(500).json(`sing in error ${error}`)
+        return res.status(500).json({ message: `Sign in error: ${error.message}` })
     }
 }
 

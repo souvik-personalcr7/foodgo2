@@ -1,15 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaLocationDot } from "react-icons/fa6";
 import { FaSearch, FaShoppingCart } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { FaPlus } from "react-icons/fa6";
-import { IoReceipt } from "react-icons/io5";
 import { useSelector, useDispatch } from "react-redux";
 import axios from 'axios';
 import { serverUrl } from '../App';
 import { setUserData } from '../Redux/userSlice';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 
 function Nav() {
@@ -18,8 +17,19 @@ function Nav() {
     const [showInfo, setShowInfo] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const location = useLocation()
-    const hideSearch = location.pathname === '/create-edit-shop'
+    const hideSearchRoutes = ['/create-edit-shop', '/owner/dashboard']
+    const currentPath = location.pathname.toLowerCase().replace(/\/$/, '')
+    const isOwner = userData?.role === "owner"
+    const hideSearch = isOwner || hideSearchRoutes.includes(currentPath)
+    const hideOwnerActions = currentPath === '/create-edit-shop'
+
+    useEffect(() => {
+        if (hideSearch) {
+            setShowSearch(false)
+        }
+    }, [hideSearch])
     const handleLogOut = async () => {
         try {
             const result = await axios.get(`${serverUrl}/api/auth/singout`, { withCredentials: true })
@@ -33,17 +43,19 @@ function Nav() {
     }
 
     return (
-        <div className='flex items-center justify-between bg-white shadow-md px-6 py-4'>
+        <div className='flex items-center justify-between gap-4 bg-white shadow-md px-6 py-4'>
 
 
-            {showSearch && userData?.role == "user" && !hideSearch && (
+            {showSearch && !hideSearch && (
                 <div className='w-[80%] bg-white shadow-xl rounded-lg items-center gap-[20px] h-[70px] flex fixed top-[70px] left-[5%] z-[9999] md:hidden'>
                     <div className="flex items-center w-full border-gray-400 px-[10px] gap-[10px]">
-                        <div className="flex items-center w-[30%] gap-[10px] overflow-hidden ">
-                            <FaLocationDot className="w-[20px] h-[25px] text-amber-700" />
-                            <span className="truncate text-gray-600">{currentCity}</span>
-                        </div>
-                        <div className="flex items-center w-[70%] gap-[10px]">
+                        {userData?.role == "user" && (
+                            <div className="flex items-center w-[30%] gap-[10px] overflow-hidden ">
+                                <FaLocationDot className="w-[20px] h-[25px] text-amber-700" />
+                                <span className="truncate text-gray-600">{currentCity}</span>
+                            </div>
+                        )}
+                        <div className={`${userData?.role == "user" ? "w-[70%]" : "w-full"} flex items-center gap-[10px]`}>
                             <FaSearch
                                 size={25}
                                 className="text-amber-700 cursor-pointer"
@@ -60,7 +72,7 @@ function Nav() {
             )}
 
 
-            <h1 className='text-3xl font-bold mb-2 text-amber-700'>FoodGo</h1>
+            <h1 className='shrink-0 text-3xl font-bold mb-2 text-amber-700'>FoodGo</h1>
 
             {userData?.role == "user" &&
                 (<div className="flex items-center w-[30%] gap-[10px] overflow-hidden ">
@@ -70,11 +82,11 @@ function Nav() {
 
 
             {!hideSearch && (
-                <div className='md:w-[60%] lg:w-[40%] bg-white shadow-xl rounded-lg items-center gap-[20px] h-[70px] hidden md:flex'>
+                <div className='hidden md:flex flex-1 max-w-xl min-w-[240px] bg-white shadow-xl rounded-lg items-center gap-[20px] h-[70px]'>
                     <div className="flex items-center w-full border-gray-400 px-[10px] gap-[10px]">
 
-                        <div className="flex items-center w-[70%] gap-[10px]">
-                            <FaSearch size={25} className="text-amber-700 cursor-pointer" />
+                        <div className="flex items-center w-full gap-[10px]">
+                            <FaSearch size={25} className="text-amber-700 cursor-pointer shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Search your food"
@@ -86,65 +98,60 @@ function Nav() {
             )}
 
 
-            <div className='flex items-center gap-[15px]'>
-                {!hideSearch && (showSearch ? <RxCross2 className="text-amber-700 md:hidden cursor-pointer"
+            <div className='flex shrink-0 items-center gap-[15px]'>
+                {!hideSearch && (showSearch ? <RxCross2 className="text-amber-700 md:hidden cursor-pointer shrink-0"
                     onClick={() => setShowSearch(false)} /> : <FaSearch
                     size={25}
-                    className="text-amber-700 md:hidden cursor-pointer"
+                    className="text-amber-700 md:hidden cursor-pointer shrink-0"
                     onClick={() => setShowSearch(true)}
                 />)}
 
-                {userData?.role === "owner" && !hideSearch &&
+                {isOwner && !hideOwnerActions &&
                     <>
-                        {myShopData &&
-                            
+                        {!myShopData ? (
+                            <button
+                                className="hidden md:flex items-center gap-1 p-2.5 cursor-pointer rounded-full bg-amber-700 text-amber-100"
+                                onClick={() => navigate('/create-edit-shop')}
+                            >
+                                <FaPlus size={20} />
+                                <span>Create Shop</span>
+                            </button>
+                        ) : (
                             <>
-
                                 <button
-                                    className="hidden md:flex items-center gap-1 p-2.5 cursor-pointer rounded-full
-                           bg-amber-700 text-amber-100"
+                                    className="hidden md:flex items-center gap-1 p-2.5 cursor-pointer rounded-full bg-amber-700 text-amber-100"
+                                    onClick={() => navigate('/add-items')}
                                 >
                                     <FaPlus size={20} />
                                     <span>Add Food item</span>
                                 </button>
 
-
                                 <button
-                                    className="md:hidden flex items-center justify-center p-2.5 cursor-pointer rounded-full
-                           bg-amber-700 text-amber-100"
+                                    className="md:hidden flex items-center justify-center p-2.5 cursor-pointer rounded-full bg-amber-700 text-amber-100"
+                                    onClick={() => navigate(myShopData ? '/add-items' : '/create-edit-shop')}
                                 >
                                     <FaPlus size={20} />
                                 </button>
-
-
-
-                                <div className="flex items-center gap-2 cursor-pointer relative px-3 py-2 rounded-full bg-amber-700 text-amber-50 font-medium">
-
-                                    <IoReceipt size={20} />
-
-                                    <span className="hidden md:inline">My Order</span>
-
-
-                                    <span className="absolute -right-2 -top-2 text-xs font-bold text-amber-50 bg-amber-700 rounded-full px-[6px] py-[2px]">
-                                        0
-                                    </span>
-                                </div>
-                            </>}
-
+                            </>
+                        )}
                     </>
                 }
 
 
 
-                <div className='relative cursor-pointer mr-[5px] mb-[5px]'>
-                    <FaShoppingCart size={25} className='text-amber-700' />
-                    <span className='absolute right-[-9px] top-[-12px] text-amber-700'>0</span>
-                </div>
+                {!isOwner && (
+                    <div className='relative cursor-pointer mr-[5px] mb-[5px]'>
+                        <FaShoppingCart size={25} className='text-amber-700' />
+                        <span className='absolute right-[-9px] top-[-12px] text-amber-700'>0</span>
+                    </div>
+                )}
 
 
-                <button className='hidden md:block px-3 py-1 rounded-lg bg-amber-950/10 text-amber-700 text-sm font-medium cursor-pointer'>
-                    My Orders
-                </button>
+                {!isOwner && (
+                    <button className='hidden md:block px-3 py-1 rounded-lg bg-amber-950/10 text-amber-700 text-sm font-medium cursor-pointer'>
+                        My Orders
+                    </button>
+                )}
 
 
                 <div

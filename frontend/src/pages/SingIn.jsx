@@ -26,19 +26,28 @@ const SingIn = () => {
 
     const handleSingIn = async () => {
         try {
+            if (!email || !password) {
+                alert("Please enter both email and password")
+                return
+            }
             const result = await axios.post(
                 `${serverUrl}/api/auth/singin`,
                 {
-
-                    email,
-                    password,
-
+                    email: email.trim(),
+                    password: password.trim(),
                 },
                 { withCredentials: true }
             )
             dispatch(setUserData(result.data))
+            if (result.data.role === "owner") {
+                navigate("/owner/dashboard")
+            } else {
+                navigate("/")
+            }
             console.log(result.data)
         } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message
+            alert(`Sign in failed: ${errorMessage}`)
             console.log(error)
         }
     }

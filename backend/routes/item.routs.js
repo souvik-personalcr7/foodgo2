@@ -1,6 +1,6 @@
 import express from "express"
 import isAuth from "../middleweres/isAuth.js"
-import { addItem, editItem } from "../controllers/item.contrellers.js"
+import { addItem, deleteItem, editItem, getItemById } from "../controllers/item.contrellers.js"
 import upload from "../middleweres/multer.js"
 //import { getCurrentUser } from "../controllers/user.controllers.js"
 //import isAuth from "../middleweres/isAuth.js"
@@ -12,6 +12,8 @@ const itemRouter = express.Router()
 //authrouter.post ("/singout",singOut)
 itemRouter.post ("/add-item",isAuth,upload.single("image"),addItem)
 itemRouter.post("/edit-item/:itemId",isAuth,upload.single("image"),editItem)
+itemRouter.delete("/delete-item/:itemId",isAuth,deleteItem)
+itemRouter.get ("/get-by-id/:itemId",isAuth,getItemById)
 
 // authrouter.post ("/send-otp",sendOtp)
 // authrouter.post ("/verify-otp",verifyOtp)

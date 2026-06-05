@@ -3,26 +3,23 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { FaUtensils } from "react-icons/fa";
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { serverUrl } from '../App';
 import axios from 'axios';
 import { setMyShopData } from '../Redux/ownerSlice';
 
-function AddItems() {
+function EditItems() {
     const Navigate = useNavigate()
     const location = useLocation()
-    const { itemId } = useParams()
     const dispatch = useDispatch()
     const { myShopData } = useSelector(state => state.owner)
-    const editItem = location.state?.item || (myShopData?.item || []).find((item) => item._id === itemId)
-    const isEditMode = Boolean(itemId || editItem?._id)
-    const editItemId = editItem?._id || itemId
-    const [foodName, setFoodName] = useState(editItem?.name || "")
-    const [price, setPrice] = useState(editItem?.price || 0)
-    const [frontendImage, setFrontendImage] = useState(editItem?.image || null)
+    const itemData = location.state?.item
+    const [foodName, setFoodName] = useState(itemData?.name || "")
+    const [price, setPrice] = useState(itemData?.price || 0)
+    const [frontendImage, setFrontendImage] = useState(itemData?.image || null)
     const [backendImage, setBackendImage] = useState(null)
-    const [category, setCategory] = useState(editItem?.category || "")
-    const [foodType, setFoodType] = useState(editItem?.foodType || "veg")
+    const [category, setCategory] = useState(itemData?.category || "")
+    const [foodType, setFoodType] = useState(itemData?.foodType || "veg")
     const [submitError, setSubmitError] = useState("")
     const categoryOptions = [
         "Snacks",
@@ -43,15 +40,10 @@ function AddItems() {
     }, [])
 
     useEffect(() => {
-        if (!editItem) return
-
-        setFoodName(editItem.name || "")
-        setPrice(editItem.price || 0)
-        setFrontendImage(editItem.image || null)
-        setBackendImage(null)
-        setCategory(editItem.category || "")
-        setFoodType(editItem.foodType || "veg")
-    }, [editItem])
+        if (!itemData?._id) {
+            Navigate("/owner/dashboard")
+        }
+    }, [Navigate, itemData?._id])
 
     const handleImage = (e) => {
         const file = e.target.files[0]
@@ -64,16 +56,12 @@ function AddItems() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setSubmitError("")
-        if (!myShopData?._id) {
-            setSubmitError("Please create your shop first before adding food items.")
+        if (!itemData?._id) {
+            setSubmitError("Please select an item to edit.")
             return
         }
-        if (isEditMode && !editItemId) {
-            setSubmitError("Unable to find this item for editing.")
-            return
-        }
-        if (!foodName.trim() || !category || !price || (!isEditMode && !backendImage)) {
-            setSubmitError("Please fill all fields and upload an image.")
+        if (!foodName.trim() || !category || !price) {
+            setSubmitError("Please fill all required fields.")
             return
         }
         try {
@@ -85,36 +73,19 @@ function AddItems() {
             if (backendImage) {
                 formData.append("image", backendImage)
             }
-            const url = isEditMode
-                ? `${serverUrl}/api/item/edit-item/${editItemId}`
-                : `${serverUrl}/api/item/add-item`
-
-            const result = await axios.post(url, formData, {
+            const result = await axios.post(`${serverUrl}/api/item/edit-item/${itemData._id}`, formData, {
                 withCredentials: true
             })
             console.log(result.data)
-            if (isEditMode) {
-                dispatch(setMyShopData({
-                    ...myShopData,
-                    item: (myShopData?.item || []).map((item) =>
-                        item._id === editItemId ? result.data : item
-                    )
-                }))
-            } else {
-                dispatch(setMyShopData({
-                    ...myShopData,
-                    item: [...(myShopData?.item || []), result.data]
-                }))
-            }
-            setFoodName("")
-            setPrice(0)
-            setCategory("")
-            setFoodType("veg")
-            setFrontendImage(null)
-            setBackendImage(null)
+            dispatch(setMyShopData({
+                ...myShopData,
+                item: (myShopData?.item || []).map((item) =>
+                    item._id === itemData._id ? result.data : item
+                )
+            }))
             Navigate("/owner/dashboard")
         } catch (error) {
-            setSubmitError(error?.response?.data?.message || "Unable to save item. Please try again.")
+            setSubmitError(error?.response?.data?.message || "Unable to edit item. Please try again.")
         }
     }
 
@@ -131,7 +102,7 @@ function AddItems() {
                     <FaUtensils className='text-amber-100 w-12 h-12 sm:w-16 sm:h-16 mb-2 sm:mb-4' />
                 </div>
                 <div className='flex justify-center w-full text-amber-50 font-extrabold text-2xl sm:text-3xl mb-6'>
-                    {isEditMode ? "Edit Your Food" : "Add Your Food"}
+                    Edit Your Food
 
                 </div>
                 {myShopData && (
@@ -210,7 +181,7 @@ function AddItems() {
 
                     <button type='submit' className='w-full bg-amber-50 text-amber-900 mt-4 sm:mt-6 px-6 py-3 rounded-lg font-bold text-lg
                           shadow-md hover:bg-amber-100 hover:shadow-lg transition-all duration-200 cursor-pointer'>
-                        {isEditMode ? "Update Food" : "Add Food"}
+                        Edit Food
                     </button>
 
                 </form>
@@ -221,4 +192,4 @@ function AddItems() {
     )
 }
 
-export default AddItems
+export default EditItems
