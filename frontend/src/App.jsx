@@ -14,6 +14,7 @@ import useGetCity from './Hooks/UseGetCity'
 import useGetMyShop from './Hooks/useGetMyShop'
 import AddItems from './pages/additems'
 import EditItems from './pages/EditItems'
+import useGetAllShops from './Hooks/useGetAllShops'
 
 
 export const serverUrl = "http://localhost:8000"
@@ -22,6 +23,7 @@ function App() {
   useGetCurrentUser()
   useGetCity()
   useGetMyShop()
+  useGetAllShops()
   const location = useLocation()
   const { userData, isAuthResolved } = useSelector(state => state.user)
   const hideNavRoutes = ['/singup', '/singin', '/forgotpassword']
@@ -47,7 +49,6 @@ function App() {
         <Route path='/add-items/:itemId' element={userData?.role === 'owner' ? <AddItems /> : <Navigate to={"/singin"} />} />
         <Route path='/additems' element={<Navigate to={'/add-items'} replace />} />
         <Route path='/Deliverydashboard' element={<Navigate to={'/'} replace />} />
-        <Route path='/edit-item' element={userData?.role === 'owner' ? <EditItems /> : <Navigate to={"/add-items"} />} />
       </Routes>
     </>
   )

@@ -61,14 +61,22 @@ const SingIn = () => {
             const result = await signInWithPopup(auth, provider);
             console.log(result);
 
-            const { data } = await axios.get(
+            const { data } = await axios.post(
                 `${serverUrl}/api/auth/google-auth`,
                 { email: result.user.email },
                 { withCredentials: true }
             );
 
             console.log(data);
+            dispatch(setUserData(data));
+            if (data.role === "owner") {
+                navigate("/owner/dashboard");
+            } else {
+                navigate("/");
+            }
         } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message;
+            alert(`Google Sign in failed: ${errorMessage}`);
             console.error("Google sign-in error:", error);
         }
     };
@@ -188,4 +196,3 @@ const SingIn = () => {
 
 
 export default SingIn
-

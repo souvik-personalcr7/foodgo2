@@ -167,7 +167,7 @@ function AddItems() {
                     </div>
 
                     <div>
-                        <label className='block text-sm font-medium text-amber-100 mb-1 sm:mb-2'>Food Name</label>
+                        <label className='block text-sm font-medium text-amber-100 mb-1 sm:mb-2'>Price</label>
                         <input type="number" placeholder='Enter Price'
                             className='w-full px-4 py-2 bg-white text-gray-800 border border-transparent rounded-lg focus:outline-none focus:ring-2 
                             focus:ring-amber-200 transition-shadow' onChange={(e) => setPrice(e.target.value)} value={price} />

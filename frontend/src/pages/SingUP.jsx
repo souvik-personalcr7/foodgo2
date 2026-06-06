@@ -78,18 +78,27 @@ const SingUp = () => {
         const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(auth, provider);
         console.log(result);
+        setLoding(true);
         try {
-            const { deta } = await axios.post(`${serverUrl}/api/auth/google-auth`, {
+            const { data } = await axios.post(`${serverUrl}/api/auth/google-auth`, {
                 fullName: result.user.displayName,
                 email: result.user.email,
                 role,
                 mobile
 
             }, { withCredentials: true })
-            console.log(deta);
-
+            console.log(data);
+            dispatch(setUserData(data.user));
+            if (role === "owner") {
+                navigate("/owner/dashboard");
+            } else {
+                navigate("/");
+            }
         } catch (error) {
             console.error("Google sign-in error:", error);
+            setErr(error.response?.data?.message || "Google Signup failed");
+        } finally {
+            setLoding(false);
         }
     };
     //..................................................................................................................................

@@ -8,7 +8,8 @@ const userSlice = createSlice({
     currentCity: null,
     currentState: null,
     currentAddress: null,
-    isAuthResolved: false
+    isAuthResolved: false,
+    allShops: [],
   },
   reducers: {
     setUserData: (state, action) => {
@@ -26,8 +27,18 @@ const userSlice = createSlice({
     setIsAuthResolved: (state, action) => {
       state.isAuthResolved = action.payload;
     },
+    setAllShops: (state, action) => {
+      state.allShops = action.payload;
+    },
   },
 });
 
-export const { setUserData, setCurrentCity, setCurrentState, setCurrentAddress, setIsAuthResolved } = userSlice.actions;
+export const {
+  setUserData,
+  setCurrentCity,
+  setCurrentState,
+  setCurrentAddress,
+  setIsAuthResolved,
+  setAllShops,
+} = userSlice.actions;
 export default userSlice.reducer;
