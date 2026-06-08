@@ -7,6 +7,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { serverUrl } from '../App';
 import axios from 'axios';
 import { setMyShopData } from '../Redux/ownerSlice';
+import { setAllShops } from '../Redux/userSlice';
 
 function AddItems() {
     const Navigate = useNavigate()
@@ -92,7 +93,8 @@ function AddItems() {
             const result = await axios.post(url, formData, {
                 withCredentials: true
             })
-            console.log(result.data)
+
+            // ── Sync owner's shop state ──────────────────────────────
             if (isEditMode) {
                 dispatch(setMyShopData({
                     ...myShopData,
@@ -106,6 +108,13 @@ function AddItems() {
                     item: [...(myShopData?.item || []), result.data]
                 }))
             }
+
+            // ── Re-fetch allShops so User Dashboard stays in sync ────
+            try {
+                const shopsRes = await axios.get(`${serverUrl}/api/shop/all`, { withCredentials: true })
+                dispatch(setAllShops(shopsRes.data.shops || []))
+            } catch (_) { /* non-critical */ }
+
             setFoodName("")
             setPrice(0)
             setCategory("")

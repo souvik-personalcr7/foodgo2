@@ -4,8 +4,9 @@ import { MdDelete } from "react-icons/md";
 import { FaPen } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { serverUrl } from '../App';
 import { setMyShopData } from '../Redux/ownerSlice';
+import { setAllShops } from '../Redux/userSlice';
+import { serverUrl } from '../App';
 
 function OwnerItemCard({ data }) {
     const Navigate = useNavigate()
@@ -29,6 +30,13 @@ function OwnerItemCard({ data }) {
                 ...myShopData,
                 item: (myShopData?.item || []).filter((item) => item._id !== data._id)
             }))
+
+            // Re-fetch allShops so User Dashboard stays in sync
+            try {
+                const shopsRes = await axios.get(`${serverUrl}/api/shop/all`, { withCredentials: true })
+                dispatch(setAllShops(shopsRes.data.shops || []))
+            } catch (_) { /* non-critical */ }
+
             setShowConfirm(false)
         } catch (error) {
             setDeleteError(error?.response?.data?.message || "Unable to delete item.")

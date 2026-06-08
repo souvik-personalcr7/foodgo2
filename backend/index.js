@@ -12,10 +12,21 @@ import itemRouter from "./routes/item.routs.js";
 
 const app = express();
 const port = process.env.PORT || 8000
-app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true
+const allowedOrigins = [
+    "http://localhost:5173",  
+    "http://localhost:4173", 
+]
 
+app.use(cors({
+    origin: (origin, callback) => {
+        
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true)
+        } else {
+            callback(new Error(`CORS blocked: ${origin}`))
+        }
+    },
+    credentials: true
 }))
 app.use(express.json())
 app.use(cookieParser())

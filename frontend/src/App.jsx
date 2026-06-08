@@ -10,11 +10,13 @@ import { useSelector } from 'react-redux'
 import OwnerdDashbord from './components/OwnerdDashbord'
 import Home from './pages/Home'
 import Nav from './components/Nav'
+import Footer from './components/Footer'
 import useGetCity from './Hooks/UseGetCity'
 import useGetMyShop from './Hooks/useGetMyShop'
 import AddItems from './pages/additems'
 import EditItems from './pages/EditItems'
 import useGetAllShops from './Hooks/useGetAllShops'
+import Cart from './pages/Cart'
 
 
 export const serverUrl = "http://localhost:8000"
@@ -49,7 +51,9 @@ function App() {
         <Route path='/add-items/:itemId' element={userData?.role === 'owner' ? <AddItems /> : <Navigate to={"/singin"} />} />
         <Route path='/additems' element={<Navigate to={'/add-items'} replace />} />
         <Route path='/Deliverydashboard' element={<Navigate to={'/'} replace />} />
+        <Route path='/cart' element={userData ? <Cart /> : <Navigate to={'/singin'} />} />
       </Routes>
+      {showNav && <Footer />}
     </>
   )
 }

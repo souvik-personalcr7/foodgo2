@@ -1,8 +1,8 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import foodgoLogo from "../assets/image.png"
 import { FaLocationDot } from "react-icons/fa6";
-import { FaSearch, FaShoppingCart } from "react-icons/fa";
-import { RxCross2 } from "react-icons/rx";
+import { FaShoppingCart } from "react-icons/fa";
 import { FaPlus } from "react-icons/fa6";
 import { useSelector, useDispatch } from "react-redux";
 import axios from 'axios';
@@ -14,97 +14,36 @@ import { useLocation, useNavigate } from 'react-router-dom';
 function Nav() {
     const { userData, currentCity } = useSelector(state => state.user);
     const { myShopData } = useSelector(state => state.owner);
+    const cartCount = useSelector(state => state.cart.items.reduce((s, i) => s + i.quantity, 0));
     const [showInfo, setShowInfo] = useState(false);
-    const [showSearch, setShowSearch] = useState(false);
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
-    const hideSearchRoutes = ['/create-edit-shop', '/owner/dashboard']
     const currentPath = location.pathname.toLowerCase().replace(/\/$/, '')
     const isOwner = userData?.role === "owner"
-    const hideSearch = isOwner || hideSearchRoutes.includes(currentPath)
     const hideOwnerActions = currentPath === '/create-edit-shop'
 
-    useEffect(() => {
-        if (hideSearch) {
-            setShowSearch(false)
-        }
-    }, [hideSearch])
     const handleLogOut = async () => {
         try {
-            const result = await axios.get(`${serverUrl}/api/auth/singout`, { withCredentials: true })
-
+            await axios.get(`${serverUrl}/api/auth/singout`, { withCredentials: true })
             dispatch(setUserData(null))
-
         } catch (error) {
             console.log(error)
-
         }
     }
 
     return (
         <div className='flex items-center justify-between gap-4 bg-white shadow-md px-6 py-4'>
-
-
-            {showSearch && !hideSearch && (
-                <div className='w-[80%] bg-white shadow-xl rounded-lg items-center gap-[20px] h-[70px] flex fixed top-[70px] left-[5%] z-[9999] md:hidden'>
-                    <div className="flex items-center w-full border-gray-400 px-[10px] gap-[10px]">
-                        {userData?.role == "user" && (
-                            <div className="flex items-center w-[30%] gap-[10px] overflow-hidden ">
-                                <FaLocationDot className="w-[20px] h-[25px] text-amber-700" />
-                                <span className="truncate text-gray-600">{currentCity}</span>
-                            </div>
-                        )}
-                        <div className={`${userData?.role == "user" ? "w-[70%]" : "w-full"} flex items-center gap-[10px]`}>
-                            <FaSearch
-                                size={25}
-                                className="text-amber-700 cursor-pointer"
-                                onClick={() => setShowSearch(prev => !prev)}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Search your food"
-                                className="px-[10px] text-gray-700 outline-0 w-full"
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
-
-
-            <h1 className='shrink-0 text-3xl font-bold mb-2 text-amber-700'>FoodGo</h1>
-
-            {userData?.role == "user" &&
-                (<div className="flex items-center w-[30%] gap-[10px] overflow-hidden ">
+            <img src={foodgoLogo} alt="FoodGo" className='shrink-0 h-7 w-[70px] md:h-10 md:w-[100px] lg:h-14 lg:w-[120px] cursor-pointer'
+                style={{ borderRadius: '20%' }} onClick={() => navigate('/')} />
+            {userData?.role == "user" && (
+                <div className="flex items-center w-[30%] gap-[10px] overflow-hidden">
                     <FaLocationDot className="w-[20px] h-[25px] text-amber-700" />
                     <span className="truncate text-gray-600">{currentCity}</span>
-                </div>)}
-
-
-            {!hideSearch && (
-                <div className='hidden md:flex flex-1 max-w-xl min-w-[240px] bg-white shadow-xl rounded-lg items-center gap-[20px] h-[70px]'>
-                    <div className="flex items-center w-full border-gray-400 px-[10px] gap-[10px]">
-
-                        <div className="flex items-center w-full gap-[10px]">
-                            <FaSearch size={25} className="text-amber-700 cursor-pointer shrink-0" />
-                            <input
-                                type="text"
-                                placeholder="Search your food"
-                                className="px-[10px] text-gray-700 outline-0 w-full"
-                            />
-                        </div>
-                    </div>
                 </div>
             )}
 
-
             <div className='flex shrink-0 items-center gap-[15px]'>
-                {!hideSearch && (showSearch ? <RxCross2 className="text-amber-700 md:hidden cursor-pointer shrink-0"
-                    onClick={() => setShowSearch(false)} /> : <FaSearch
-                    size={25}
-                    className="text-amber-700 md:hidden cursor-pointer shrink-0"
-                    onClick={() => setShowSearch(true)}
-                />)}
 
                 {isOwner && !hideOwnerActions &&
                     <>
@@ -137,22 +76,36 @@ function Nav() {
                     </>
                 }
 
-
-
                 {!isOwner && (
-                    <div className='relative cursor-pointer mr-[5px] mb-[5px]'>
+                    <div
+                        className='relative cursor-pointer mr-[5px] mb-[5px]'
+                        onClick={() => navigate('/cart')}
+                        title="View cart"
+                    >
                         <FaShoppingCart size={25} className='text-amber-700' />
-                        <span className='absolute right-[-9px] top-[-12px] text-amber-700'>0</span>
+                        <span style={{
+                            position: 'absolute', top: -10, right: -10,
+                            background: cartCount > 0 ? '#dc2626' : '#b45309',
+                            color: '#fff',
+                            fontSize: 11, fontWeight: 800,
+                            minWidth: 18, height: 18,
+                            borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            padding: '0 3px',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                            transition: 'transform 0.2s',
+                            transform: cartCount > 0 ? 'scale(1.15)' : 'scale(1)',
+                        }}>
+                            {cartCount}
+                        </span>
                     </div>
                 )}
-
 
                 {!isOwner && (
                     <button className='hidden md:block px-3 py-1 rounded-lg bg-amber-950/10 text-amber-700 text-sm font-medium cursor-pointer'>
                         My Orders
                     </button>
                 )}
-
 
                 <div
                     className='bg-amber-700 text-amber-50 w-[40px] h-[40px] rounded-2xl flex items-center justify-center
@@ -161,7 +114,6 @@ function Nav() {
                 >
                     {userData?.fullName?.slice(0, 1) || "U"}
                 </div>
-
 
                 {showInfo && (
                     <div className='fixed top-[80px] right-[10px] md:right-[10%] lg:right-[20%] w-[180px] 
@@ -183,4 +135,3 @@ function Nav() {
 }
 
 export default Nav;
-
