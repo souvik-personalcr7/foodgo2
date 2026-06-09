@@ -34,14 +34,18 @@ function Nav() {
 
     return (
         <div className='flex items-center justify-between gap-4 bg-white shadow-md px-6 py-4'>
-            <img src={foodgoLogo} alt="FoodGo" className='shrink-0 h-7 w-[70px] md:h-10 md:w-[100px] lg:h-14 lg:w-[120px] cursor-pointer'
-                style={{ borderRadius: '20%' }} onClick={() => navigate('/')} />
-            {userData?.role == "user" && (
-                <div className="flex items-center w-[30%] gap-[10px] overflow-hidden">
-                    <FaLocationDot className="w-[20px] h-[25px] text-amber-700" />
-                    <span className="truncate text-gray-600">{currentCity}</span>
-                </div>
-            )}
+            {/* Left Section: Logo + Location */}
+            <div className="flex items-center gap-4 sm:gap-8">
+                <img src={foodgoLogo} alt="FoodGo" className='shrink-0 h-7 w-[70px] md:h-10 md:w-[100px] lg:h-14 lg:w-[120px] cursor-pointer'
+                    style={{ borderRadius: '20%' }} onClick={() => navigate('/')} />
+                
+                {userData?.role == "user" && (
+                    <div className="flex items-center gap-[6px] max-w-[120px] sm:max-w-[200px] overflow-hidden">
+                        <FaLocationDot className="w-[16px] h-[16px] md:w-[20px] md:h-[20px] text-amber-700 shrink-0" />
+                        <span className="truncate text-gray-600 font-medium text-sm md:text-base">{currentCity}</span>
+                    </div>
+                )}
+            </div>
 
             <div className='flex shrink-0 items-center gap-[15px]'>
 
@@ -102,7 +106,9 @@ function Nav() {
                 )}
 
                 {!isOwner && (
-                    <button className='hidden md:block px-3 py-1 rounded-lg bg-amber-950/10 text-amber-700 text-sm font-medium cursor-pointer'>
+                    <button
+                        onClick={() => navigate('/my-orders')}
+                        className='hidden md:block px-3 py-1 rounded-lg bg-amber-950/10 text-amber-700 text-sm font-medium cursor-pointer'>
                         My Orders
                     </button>
                 )}
@@ -121,7 +127,7 @@ function Nav() {
                         <div className='text-[17px] font-semibold'>
                             {userData?.fullName || "Guest"}
                         </div>
-                        <div className='md:hidden text-amber-700 font-semibold cursor-pointer'>
+                        <div className='md:hidden text-amber-700 font-semibold cursor-pointer' onClick={() => navigate('/my-orders')}>
                             My Order
                         </div>
                         <div className='text-amber-800 bg-amber-100 p-3 rounded-2xl cursor-pointer' onClick={handleLogOut}>

@@ -4,8 +4,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios"
 import { serverUrl } from '../App';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../../Firebase';
+import { useGoogleLogin } from '@react-oauth/google';
 import { } from 'react-spinners'
 import { useDispatch } from 'react-redux';
 import { setUserData } from '../Redux/userSlice';
@@ -70,39 +69,45 @@ const SingUp = () => {
     //...............................................................................................................................
     //...............................................................................................................................
 
-    const handleGoogleAuth = async () => {
-        if (!mobile) {
-            return setErr("enter your valid mobile number");
-        }
-        console.log("clicked")
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        console.log(result);
-        setLoding(true);
-        try {
-            const { data } = await axios.post(`${serverUrl}/api/auth/google-auth`, {
-                fullName: result.user.displayName,
-                email: result.user.email,
-                role,
-                mobile
-
-            }, { withCredentials: true })
-            console.log(data);
-            dispatch(setUserData(data.user));
-            if (role === "owner") {
-                navigate("/owner/dashboard");
-            } else {
-                navigate("/");
+    const handleGoogleAuth = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            if (!mobile) {
+                return setErr("Enter your valid mobile number");
             }
-        } catch (error) {
-            console.error("Google sign-in error:", error);
-            setErr(error.response?.data?.message || "Google Signup failed");
-        } finally {
-            setLoding(false);
-        }
-    };
-    //..................................................................................................................................
-    //..................................................................................................................................
+            setLoding(true);
+            try {
+                // Get user info from Google using the access token
+                const googleUser = await axios.get(
+                    'https://www.googleapis.com/oauth2/v3/userinfo',
+                    { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
+                );
+
+                const { data } = await axios.post(`${serverUrl}/api/auth/google-auth`, {
+                    fullName: googleUser.data.name,
+                    email: googleUser.data.email,
+                    role,
+                    mobile
+                }, { withCredentials: true });
+
+                dispatch(setUserData(data.user));
+                if (role === "owner") {
+                    navigate("/owner/dashboard");
+                } else {
+                    navigate("/");
+                }
+            } catch (error) {
+                console.error("Google sign-in error:", error);
+                setErr(error.response?.data?.message || "Google Signup failed. Please try again.");
+            } finally {
+                setLoding(false);
+            }
+        },
+        onError: (error) => {
+            console.error("Google OAuth error:", error);
+            setErr("Google Signup failed. Please try again.");
+        },
+    });
+//..................................................................................................................................
     return (
         <div className='min-h-screen w-full flex items-center justify-center p-4' style={{ backgroundColor: bgColour }}>
             <div className={`bg-white rounded-xl shadow-lg w-full max-w-md p-8`} style={{ border: `1px solid ${borderColur}` }}>
@@ -191,12 +196,7 @@ const SingUp = () => {
                 </button>
 
 
-                <button
-                    className='w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 border-gray-100 hover:bg-gray-200 cursor-pointer'
-                    onClick={handleGoogleAuth}>
-                    <FcGoogle size={20} />
-                    <span>Sign up with Google</span>
-                </button>
+              
                 {err && <p className='text-red-700 text-center'>*fill up the form*</p>}
 
                 <p className='text-center mt-2'>

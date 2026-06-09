@@ -294,6 +294,13 @@ function UserDashbord() {
       return (shop.item || []).some(item => item.foodType === filterType)
     })
     .sort((a, b) => {
+      const aHasItems = (a.item || []).length > 0
+      const bHasItems = (b.item || []).length > 0
+
+      // Always push empty shops to the bottom
+      if (aHasItems && !bHasItems) return -1
+      if (!aHasItems && bHasItems) return 1
+
       if (!q) return 0
 
       const countMatches = shop =>

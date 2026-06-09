@@ -1,16 +1,107 @@
-import React from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { IoMdArrowRoundBack } from 'react-icons/io'
 import { useSelector, useDispatch } from 'react-redux'
 import { incrementQty, decrementQty, removeFromCart, clearCart } from '../Redux/cartSlice'
+import { placeOrder } from '../Redux/ordersSlice'
 import { useNavigate } from 'react-router-dom'
+
+const GST_RATE = 0.18
+const GST_THRESHOLD = 200
+
+function CongratuationsPopup({ total, onDismiss }) {
+  const popupRef = useRef(null)
+
+  // Dismiss on any mouse move, scroll, touch, or click anywhere
+  useEffect(() => {
+    const dismiss = () => onDismiss()
+
+    // slight delay so the popup renders before we attach listeners
+    const timer = setTimeout(() => {
+      window.addEventListener('mousemove', dismiss, { once: true })
+      window.addEventListener('scroll', dismiss, { once: true, passive: true })
+      window.addEventListener('touchstart', dismiss, { once: true })
+      window.addEventListener('click', dismiss, { once: true })
+    }, 100)
+
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('mousemove', dismiss)
+      window.removeEventListener('scroll', dismiss)
+      window.removeEventListener('touchstart', dismiss)
+      window.removeEventListener('click', dismiss)
+    }
+  }, [onDismiss])
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.55)',
+        backdropFilter: 'blur(4px)',
+        zIndex: 9998,
+        animation: 'fadeInBg 0.3s ease',
+      }} />
+
+      {/* Popup */}
+      <div ref={popupRef} style={{
+        position: 'fixed',
+        top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 9999,
+        background: 'linear-gradient(135deg, #fff 0%, #fffbeb 100%)',
+        borderRadius: 28,
+        padding: '44px 48px 40px',
+        maxWidth: 420,
+        width: '90vw',
+        textAlign: 'center',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.25), 0 0 0 2px #fde68a',
+        animation: 'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+      }}>
+        {/* Confetti emojis */}
+        <div style={{ fontSize: 56, marginBottom: 8, animation: 'bounce 0.6s ease infinite alternate' }}>🎉</div>
+        <h2 style={{
+          margin: '0 0 6px',
+          fontSize: 26, fontWeight: 800, color: '#92400e',
+          lineHeight: 1.2,
+        }}>Congratulations!</h2>
+        <p style={{ margin: '0 0 20px', fontSize: 15, color: '#78716c', lineHeight: 1.5 }}>
+          Your order has been placed successfully!<br />
+          <strong style={{ color: '#b45309' }}>₹{total}</strong> will be collected on delivery.
+        </p>
+
+        {/* Animated checkmark */}
+        <div style={{
+          width: 64, height: 64, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #16a34a, #15803d)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 20px',
+          boxShadow: '0 4px 16px rgba(22,163,74,0.4)',
+          animation: 'checkIn 0.4s 0.2s ease both',
+        }}>
+          <span style={{ color: '#fff', fontSize: 30, fontWeight: 800 }}>✓</span>
+        </div>
+
+        <p style={{ fontSize: 12, color: '#a8a29e', margin: 0 }}>
+          Move your cursor or scroll to go to My Orders...
+        </p>
+      </div>
+    </>
+  )
+}
 
 function Cart() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { items } = useSelector(state => state.cart)
+  const [showPopup, setShowPopup] = useState(false)
+  const [orderTotal, setOrderTotal] = useState(0)
 
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+  const applyGST = subtotal > GST_THRESHOLD
+  const gstAmount = applyGST ? Math.round(subtotal * GST_RATE) : 0
+  const grandTotal = subtotal + gstAmount
 
   // Group items by shop
   const shopGroups = items.reduce((acc, item) => {
@@ -19,6 +110,27 @@ function Cart() {
     acc[key].push(item)
     return acc
   }, {})
+
+  const handlePlaceOrder = () => {
+    const order = {
+      id: `ORD-${Date.now()}`,
+      items: [...items],
+      subtotal,
+      gst: gstAmount,
+      total: grandTotal,
+      placedAt: new Date().toISOString(),
+      status: 'Confirmed',
+    }
+    dispatch(placeOrder(order))
+    dispatch(clearCart())
+    setOrderTotal(grandTotal)
+    setShowPopup(true)
+  }
+
+  const handleDismissPopup = () => {
+    setShowPopup(false)
+    navigate('/my-orders')
+  }
 
   return (
     <div style={{
@@ -30,8 +142,40 @@ function Cart() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInBg { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes popIn {
+          from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+          to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes bounce {
+          from { transform: translateY(0); }
+          to { transform: translateY(-8px); }
+        }
+        @keyframes checkIn {
+          from { opacity: 0; transform: scale(0.4); }
+          to { opacity: 1; transform: scale(1); }
+        }
         * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        .gst-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: linear-gradient(135deg, #fef3c7, #fde68a);
+          border: 1px solid #f59e0b;
+          borderRadius: 20px;
+          padding: 2px 10px;
+          fontSize: 11px;
+          fontWeight: 700;
+          color: #92400e;
+        }
       `}</style>
+
+      {showPopup && (
+        <CongratuationsPopup
+          total={orderTotal.toFixed(0)}
+          onDismiss={handleDismissPopup}
+        />
+      )}
 
       <div style={{ maxWidth: 700, margin: '0 auto' }}>
 
@@ -81,7 +225,7 @@ function Cart() {
         </div>
 
         {/* Empty state */}
-        {items.length === 0 && (
+        {items.length === 0 && !showPopup && (
           <div style={{
             textAlign: 'center', padding: '60px 20px',
             background: '#fff', borderRadius: 24,
@@ -247,24 +391,64 @@ function Cart() {
                 <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16, color: '#92400e' }}>🧾 Order Summary</h3>
               </div>
               <div style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+                {/* Subtotal */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#78716c' }}>
                   <span>Subtotal ({totalItems} items)</span>
-                  <span style={{ fontWeight: 700, color: '#1c1917' }}>₹{total.toFixed(0)}</span>
+                  <span style={{ fontWeight: 700, color: '#1c1917' }}>₹{subtotal.toFixed(0)}</span>
                 </div>
+
+                {/* GST row - only when subtotal > 200 */}
+                {applyGST && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14, color: '#78716c' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      GST (18%)
+                      <span style={{
+                        background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+                        border: '1px solid #f59e0b',
+                        borderRadius: 20,
+                        padding: '1px 8px',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: '#92400e',
+                      }}>applicable on orders &gt; ₹200</span>
+                    </span>
+                    <span style={{ fontWeight: 700, color: '#b45309' }}>+ ₹{gstAmount}</span>
+                  </div>
+                )}
+
+                {/* Delivery */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#78716c' }}>
                   <span>Delivery charge</span>
                   <span style={{ fontWeight: 700, color: '#16a34a' }}>FREE</span>
                 </div>
-                <div style={{
-                  height: 1, background: '#fde68a', margin: '4px 0'
-                }} />
+
+                {/* Divider */}
+                <div style={{ height: 1, background: '#fde68a', margin: '4px 0' }} />
+
+                {/* Grand Total */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 17, fontWeight: 800, color: '#92400e' }}>
                   <span>Total</span>
-                  <span>₹{total.toFixed(0)}</span>
+                  <span>₹{grandTotal.toFixed(0)}</span>
                 </div>
+
+                {/* GST note */}
+                {applyGST && (
+                  <div style={{
+                    fontSize: 11, color: '#92400e',
+                    background: '#fffbeb',
+                    border: '1px dashed #fde68a',
+                    borderRadius: 8,
+                    padding: '6px 10px',
+                    marginTop: 2,
+                  }}>
+                    ℹ️ 18% GST applied on subtotal of ₹{subtotal.toFixed(0)} (orders above ₹200)
+                  </div>
+                )}
               </div>
               <div style={{ padding: '14px 20px 20px' }}>
                 <button
+                  onClick={handlePlaceOrder}
                   style={{
                     width: '100%', background: 'linear-gradient(135deg, #b45309, #92400e)',
                     color: '#fff', border: 'none', borderRadius: 14,
@@ -275,7 +459,7 @@ function Cart() {
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(180,83,9,0.4)' }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(180,83,9,0.35)' }}
                 >
-                  🚀 Place Order · ₹{total.toFixed(0)}
+                  🚀 Place Order · ₹{grandTotal.toFixed(0)}
                 </button>
               </div>
             </div>

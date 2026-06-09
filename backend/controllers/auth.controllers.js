@@ -107,20 +107,25 @@ export const sendOtp = async (req, res) => {
         const { email } = req.body
         const user = await User.findOne({ email })
         if (!user) {
-            return res.status(400).json({ massage: "use not exist" })
+            return res.status(400).json({ message: "No account found with this email" })
         }
         const otp = Math.floor(1000 + Math.random() * 9000).toString()
         user.resetOtp = otp
         user.otpExpires = Date.now() + 5 * 60 * 1000
         user.isOtpVeryfied = false
         await user.save()
-        await sendOtpMail(email, otp)
-        return res.status(200).json({ massage: "otp send success fully" })
-    }
 
-    catch (error) {
+        try {
+            await sendOtpMail(email, otp)
+        } catch (mailError) {
+            console.error("Mail error:", mailError)
+            return res.status(500).json({ message: "Failed to send OTP email. Please check server email configuration (Gmail App Password required)." })
+        }
+
+        return res.status(200).json({ message: "OTP sent successfully" })
+    } catch (error) {
         console.log(error)
-        return res.status(500).json(`send OTP error!! ${error}`)
+        return res.status(500).json({ message: `Send OTP error: ${error.message}` })
     }
 }
 
@@ -162,11 +167,27 @@ export const resetPassword = async (req, res) => {
 export const googleAuth = async (req, res) => {
     try {
         const { fullName, email, mobile, role } = req.body
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" })
+        }
+
         let user = await User.findOne({ email })
+
         if (!user) {
+            // New user — create with whatever data we have from Google
             user = await User.create({
-                fullName, email, mobile, role
+                fullName: fullName || email.split("@")[0], // fallback to email prefix
+                email,
+                mobile: mobile || "",
+                role: role || "user", // default role is user
+                password: undefined,
             })
+        } else {
+            // Existing user — optionally update fields if provided
+            if (fullName && !user.fullName) user.fullName = fullName
+            if (mobile && !user.mobile) user.mobile = mobile
+            await user.save()
         }
 
         const token = await genToken(user._id)
@@ -176,9 +197,11 @@ export const googleAuth = async (req, res) => {
             maxAge: 365 * 24 * 60 * 60 * 1000,
             httpOnly: true
         })
-        return res.status(200).json(user)
-    } catch (error) {
-        return res.status(500).json(`google auth  ERROR !! ${error}`)
-    }
 
+        // Always return { user } for consistent frontend consumption
+        return res.status(200).json({ user })
+    } catch (error) {
+        console.error("Google auth error:", error)
+        return res.status(500).json({ message: `Google auth error: ${error.message}` })
+    }
 }

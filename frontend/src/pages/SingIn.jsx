@@ -3,8 +3,7 @@ import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from 'react-router-dom';
 import { serverUrl } from '../App';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../../Firebase';
+import { useGoogleLogin } from '@react-oauth/google';
 import axios from "axios"
 import { useDispatch } from 'react-redux';
 import { setUserData } from '../Redux/userSlice';
@@ -54,32 +53,42 @@ const SingIn = () => {
     
 
 
-    const handleGoogleAuth = async () => {
-        console.log("clicked");
-        try {
-            const provider = new GoogleAuthProvider();
-            const result = await signInWithPopup(auth, provider);
-            console.log(result);
+    const handleGoogleAuth = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            try {
+                // Get user info from Google using the access token
+                const googleUser = await axios.get(
+                    'https://www.googleapis.com/oauth2/v3/userinfo',
+                    { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
+                );
 
-            const { data } = await axios.post(
-                `${serverUrl}/api/auth/google-auth`,
-                { email: result.user.email },
-                { withCredentials: true }
-            );
+                const { data } = await axios.post(
+                    `${serverUrl}/api/auth/google-auth`,
+                    {
+                        fullName: googleUser.data.name,
+                        email: googleUser.data.email,
+                        role: "user",
+                    },
+                    { withCredentials: true }
+                );
 
-            console.log(data);
-            dispatch(setUserData(data));
-            if (data.role === "owner") {
-                navigate("/owner/dashboard");
-            } else {
-                navigate("/");
+                dispatch(setUserData(data.user));
+                if (data.user?.role === "owner") {
+                    navigate("/owner/dashboard");
+                } else {
+                    navigate("/");
+                }
+            } catch (error) {
+                const errorMessage = error.response?.data?.message || error.message;
+                alert(`Google Sign in failed: ${errorMessage}`);
+                console.error("Google sign-in error:", error);
             }
-        } catch (error) {
-            const errorMessage = error.response?.data?.message || error.message;
-            alert(`Google Sign in failed: ${errorMessage}`);
-            console.error("Google sign-in error:", error);
-        }
-    };
+        },
+        onError: (error) => {
+            console.error("Google OAuth error:", error);
+            alert("Google Sign in failed. Please try again.");
+        },
+    });
 
 
     return (
@@ -173,12 +182,12 @@ const SingIn = () => {
                     Sing In
                 </button>
 
-                <button
+                {/* <button
                     className='w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 border-gray-100 hover:bg-gray-200 cursor-pointer'
                     onClick={handleGoogleAuth}>
                     <FcGoogle size={20} />
                     <span>Sign In with Google</span>
-                </button>
+                </button> */}
 
                 <p className='text-center mt-2'>
                     Want create a new  account?{' '}

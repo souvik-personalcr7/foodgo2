@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import { FaUtensils } from "react-icons/fa";
+import { FaUtensils, FaClock } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 import { FaPen } from "react-icons/fa";
 import OwnerItemCard from './ownerItemCard';
@@ -8,6 +8,7 @@ import OwnerItemCard from './ownerItemCard';
 function OwnerDashboard() {
   const { myShopData } = useSelector(state => state.owner)
   const Navigate = useNavigate()
+  
   return (
     <div className='p-6'>
 
@@ -60,12 +61,21 @@ function OwnerDashboard() {
               <span className='text-gray-700'>{myShopData.state}</span>
             </div>
           </div>
+
+          <button 
+            className='bg-green-600 text-white px-8 py-3 rounded-full font-bold hover:bg-green-700 transition-colors duration-200 shadow-md cursor-pointer flex items-center gap-2 mt-2 w-full max-w-md justify-center text-lg'
+            onClick={() => Navigate("/owner/orders")}
+          >
+            <FaClock className='text-green-100' />
+            View Incoming Orders
+          </button>
+
           {(myShopData.item || []).length > 0 && <div className='flex flex-col items-center gap-4 w-full max-w-3xl'>
+            <h2 className='text-xl font-bold text-amber-900 mt-4'>Your Menu Items</h2>
             {(myShopData.item || []).map((item, index) => (
               <OwnerItemCard data={item} key={index} />
             ))}
           </div>}
-
 
           <button className='inline-flex items-center gap-2 whitespace-nowrap bg-amber-700 text-white px-8 py-3 rounded-full font-bold hover:bg-amber-900 transition-colors duration-200 shadow-md cursor-pointer mt-2'
             onClick={() => Navigate("/create-edit-shop")}>

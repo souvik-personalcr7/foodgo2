@@ -1,5 +1,6 @@
 import React from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import SingUP from './pages/SingUP'
 import SingIn from './pages/SingIn'
 import ForgotPassword from './pages/ForgotPassword'
@@ -8,6 +9,7 @@ import CreateEditShop from './pages/CreateEditShop'
 import useGetCurrentUser from './Hooks/useGetCurrentUser'
 import { useSelector } from 'react-redux'
 import OwnerdDashbord from './components/OwnerdDashbord'
+import OwnerOrdersPage from './pages/OwnerOrdersPage'
 import Home from './pages/Home'
 import Nav from './components/Nav'
 import Footer from './components/Footer'
@@ -17,6 +19,7 @@ import AddItems from './pages/additems'
 import EditItems from './pages/EditItems'
 import useGetAllShops from './Hooks/useGetAllShops'
 import Cart from './pages/Cart'
+import MyOrders from './pages/MyOrders'
 
 
 export const serverUrl = "http://localhost:8000"
@@ -38,6 +41,7 @@ function App() {
 
   return (
     <>
+      <Toaster position="top-right" />
       {showNav && <Nav />}
       <Routes>
         <Route path='/singup' element={!userData ? <SingUP /> : <Navigate to={"/"} />} />
@@ -46,12 +50,14 @@ function App() {
         <Route path='/' element={userData ? <Home /> : <Navigate to={"/singin"} />} />
         <Route path='/create-edit-shop' element={userData ? <CreateEditShop /> : <Navigate to={"/singin"} />} />
         <Route path='/owner/dashboard' element={userData?.role === 'owner' ? <OwnerdDashbord /> : <Navigate to={"/"} />} />
+        <Route path='/owner/orders' element={userData?.role === 'owner' ? <OwnerOrdersPage /> : <Navigate to={"/"} />} />
         <Route path='/Ownerdashboard' element={<Navigate to={'/owner/dashboard'} replace />} />
         <Route path='/add-items' element={userData?.role === 'owner' ? <AddItems /> : <Navigate to={"/singin"} />} />
         <Route path='/add-items/:itemId' element={userData?.role === 'owner' ? <AddItems /> : <Navigate to={"/singin"} />} />
         <Route path='/additems' element={<Navigate to={'/add-items'} replace />} />
         <Route path='/Deliverydashboard' element={<Navigate to={'/'} replace />} />
         <Route path='/cart' element={userData ? <Cart /> : <Navigate to={'/singin'} />} />
+        <Route path='/my-orders' element={userData ? <MyOrders /> : <Navigate to={'/singin'} />} />
       </Routes>
       {showNav && <Footer />}
     </>
