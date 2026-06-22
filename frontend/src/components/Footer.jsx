@@ -161,15 +161,21 @@ function Footer() {
           © {new Date().getFullYear()} FoodGo. All rights reserved.
         </span>
         <div style={{ display: 'flex', gap: 20 }}>
-          {['Privacy Policy', 'Terms of Service', 'Refund Policy'].map(link => (
-            <span key={link} style={{
-              fontSize: 12, color: '#fde68a', cursor: 'pointer', opacity: 0.75,
-              transition: 'opacity 0.15s',
-            }}
+          {[
+            { name: 'Privacy Policy', path: '/privacy-policy' },
+            { name: 'Terms of Service', path: '/terms-of-service' },
+            { name: 'Refund Policy', path: '#' }
+          ].map(link => (
+            <span key={link.name} 
+              onClick={() => link.path !== '#' && navigate(link.path)}
+              style={{
+                fontSize: 12, color: '#fde68a', cursor: 'pointer', opacity: 0.75,
+                transition: 'opacity 0.15s',
+              }}
               onMouseEnter={e => e.currentTarget.style.opacity = '1'}
               onMouseLeave={e => e.currentTarget.style.opacity = '0.75'}
             >
-              {link}
+              {link.name}
             </span>
           ))}
         </div>

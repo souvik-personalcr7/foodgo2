@@ -273,6 +273,20 @@ function UserDashbord() {
   const { allShops, userData } = useSelector(state => state.user)
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState('all')
+  const [currentBanner, setCurrentBanner] = useState(0)
+
+  const banners = [
+    '/food-banner(1).jpg',
+    '/food-banner2.png',
+    '/food-banner3.1.avif'
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBanner(prev => (prev + 1) % banners.length)
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [banners.length]);
 
   const q = search.trim().toLowerCase()
 
@@ -396,8 +410,54 @@ function UserDashbord() {
             scroll-snap-align: start;
           }
         }
+        /* Banners */
+        .banner-carousel-wrapper {
+          width: 100%;
+          margin-bottom: 32px;
+          border-radius: 20px;
+          overflow: hidden;
+          position: relative;
+          box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+        .banner-container {
+          display: flex;
+          transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+          width: 100%;
+          height: 500px;
+        }
+        .banner-slide {
+          flex: 0 0 100%;
+          width: 100%;
+          height: 100%;
+        }
+        .banner-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        @media (max-width: 768px) {
+          .banner-container {
+            height: 280px;
+          }
+        }
       `}</style>
 
+
+      {/* Banners */}
+      <div className="banner-carousel-wrapper">
+        <div className="banner-container" style={{ transform: `translateX(-${currentBanner * 100}%)` }}>
+          {banners.map((src, i) => (
+            <div key={i} className="banner-slide">
+              <img src={src} alt={`Banner ${i+1}`} className="banner-image" />
+            </div>
+          ))}
+        </div>
+        <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 8 }}>
+          {banners.map((_, i) => (
+            <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: currentBanner === i ? '#fff' : 'rgba(255,255,255,0.5)', transition: 'background 0.3s' }} />
+          ))}
+        </div>
+       </div>
 
       {/* Popular Categories Bar */}
       <div style={{

@@ -20,6 +20,8 @@ import EditItems from './pages/EditItems'
 import useGetAllShops from './Hooks/useGetAllShops'
 import Cart from './pages/Cart'
 import MyOrders from './pages/MyOrders'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
 
 
 export const serverUrl = "http://localhost:8000"
@@ -58,6 +60,8 @@ function App() {
         <Route path='/Deliverydashboard' element={<Navigate to={'/'} replace />} />
         <Route path='/cart' element={userData ? <Cart /> : <Navigate to={'/singin'} />} />
         <Route path='/my-orders' element={userData ? <MyOrders /> : <Navigate to={'/singin'} />} />
+        <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+        <Route path='/terms-of-service' element={<TermsOfService />} />
       </Routes>
       {showNav && <Footer />}
     </>
